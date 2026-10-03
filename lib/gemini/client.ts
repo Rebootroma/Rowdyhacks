@@ -27,7 +27,7 @@ Rules:
 
 export function getGeminiConfig() {
   const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
-  const model = process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-1.5-flash';
+  const model = process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-flash-latest';
   return { apiKey, model };
 }
 

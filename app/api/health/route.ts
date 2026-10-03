@@ -20,7 +20,7 @@ export async function GET() {
       },
       geminiAi: {
         configured: hasGemini,
-        model: process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-1.5-flash',
+        model: process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-flash-latest',
       },
     },
   });
