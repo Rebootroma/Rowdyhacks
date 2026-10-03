@@ -10,6 +10,7 @@ import {
   ExpenseCategory,
   ExpenseSplit,
   ExpenseApproval,
+  SolanaAnchor,
 } from '@/types/domain';
 import {
   DEMO_USERS,
@@ -30,6 +31,7 @@ export interface DemoStoreState {
   expenses: Expense[];
   goals: SavingsGoal[];
   auditLogs: AuditLog[];
+  solanaAnchors: SolanaAnchor[];
 }
 
 const STORAGE_KEY = 'crewcash_demo_state_v1';
@@ -43,20 +45,28 @@ let serverState: DemoStoreState = {
   expenses: JSON.parse(JSON.stringify(DEMO_EXPENSES)),
   goals: JSON.parse(JSON.stringify(DEMO_GOALS)),
   auditLogs: JSON.parse(JSON.stringify(DEMO_AUDIT_LOGS)),
+  solanaAnchors: [],
 };
+
+function withDefaults(state: DemoStoreState): DemoStoreState {
+  return {
+    ...state,
+    solanaAnchors: state.solanaAnchors ?? [],
+  };
+}
 
 export function getDemoState(): DemoStoreState {
   if (typeof window !== 'undefined') {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        return withDefaults(JSON.parse(saved));
       } catch (e) {
         console.error('Failed to parse saved demo state', e);
       }
     }
   }
-  return serverState;
+  return withDefaults(serverState);
 }
 
 export function saveDemoState(state: DemoStoreState): void {
@@ -76,9 +86,22 @@ export function resetDemoState(): DemoStoreState {
     expenses: JSON.parse(JSON.stringify(DEMO_EXPENSES)),
     goals: JSON.parse(JSON.stringify(DEMO_GOALS)),
     auditLogs: JSON.parse(JSON.stringify(DEMO_AUDIT_LOGS)),
+    solanaAnchors: [],
   };
   saveDemoState(initial);
   return initial;
+}
+
+export function saveSolanaAnchor(anchor: SolanaAnchor): SolanaAnchor {
+  const state = getDemoState();
+  const without = (state.solanaAnchors ?? []).filter((a) => a.expenseId !== anchor.expenseId);
+  state.solanaAnchors = [anchor, ...without];
+  saveDemoState(state);
+  return anchor;
+}
+
+export function getSolanaAnchorForExpense(expenseId: string): SolanaAnchor | undefined {
+  return getDemoState().solanaAnchors?.find((a) => a.expenseId === expenseId);
 }
 
 export function getCurrentUser(state = getDemoState()): UserProfile {

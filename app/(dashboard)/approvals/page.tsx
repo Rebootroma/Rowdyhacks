@@ -36,7 +36,8 @@ export default function ApprovalsPage() {
             Dual-Approval Queue
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Expenses $\ge$ {formatCents(state.budget.approval_threshold_cents)} require 2 crew votes to finalize. 1 rejection rejects the allocation.
+            Expenses ≥ {formatCents(state.budget.approval_threshold_cents)} require 2 crew votes to finalize.
+            High-value approvals anchor a tamper-evident digest on Solana Devnet.
           </p>
         </div>
 
@@ -92,7 +93,13 @@ export default function ApprovalsPage() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {finalizedExpenses.map((exp) => (
+            {finalizedExpenses.map((exp) => {
+              const anchor = state.solanaAnchors?.find((a) => a.expenseId === exp.id);
+              const explorer =
+                anchor && !anchor.signature.startsWith('local-only:')
+                  ? `https://explorer.solana.com/tx/${anchor.signature}?cluster=devnet`
+                  : null;
+              return (
               <div
                 key={exp.id}
                 className="bg-slate-900/50 border border-slate-800/80 rounded-xl p-4 text-xs space-y-2"
@@ -107,8 +114,34 @@ export default function ApprovalsPage() {
                   <span>Merchant: {exp.merchant || 'N/A'}</span>
                   <span className="text-emerald-400 font-medium">Approved ✓</span>
                 </div>
+                {anchor && (
+                  <div className="pt-2 border-t border-slate-800/80 space-y-1">
+                    <div className="flex items-center gap-1.5 text-violet-300">
+                      <ShieldCheck className="w-3 h-3" />
+                      <span className="font-medium">Solana Devnet anchor</span>
+                    </div>
+                    <p className="font-mono text-[10px] text-slate-500 break-all">
+                      digest: {anchor.digest.slice(0, 18)}…
+                    </p>
+                    {explorer ? (
+                      <a
+                        href={explorer}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] text-violet-300 hover:text-violet-200 underline underline-offset-2"
+                      >
+                        View tx on explorer →
+                      </a>
+                    ) : (
+                      <p className="text-[10px] text-amber-400/90">
+                        Local digest only — fund Devnet wallet to publish on-chain
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
-            ))}
+            );
+            })}
           </div>
         </div>
       )}
