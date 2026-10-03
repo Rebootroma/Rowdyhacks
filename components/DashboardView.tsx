@@ -14,6 +14,7 @@ import { SpendingChart } from '@/components/SpendingChart';
 import { ExpenseList } from '@/components/ExpenseList';
 import { SavingsGoalCard } from '@/components/SavingsGoalCard';
 import { AuditLogFeed } from '@/components/AuditLogFeed';
+import { VaultAudioBriefing } from '@/components/VaultAudioBriefing';
 import { ExpenseCategory } from '@/types/domain';
 import {
   Clock,
@@ -78,6 +79,11 @@ export function DashboardView() {
     goalStatus,
   });
 
+  // Generate dynamic briefing text
+  const remainingCents = state.budget.amount_cents - spentCents;
+  const remainingPercentage = state.budget.amount_cents > 0 ? Math.round((remainingCents / state.budget.amount_cents) * 100) : 0;
+  const briefingText = `Good morning, ${currentUser.display_name}. CrewCash Mission Control update for ${state.crew.name}: Current vault balance stands at $${(remainingCents / 100).toFixed(2)} with ${remainingPercentage}% runway remaining. You have ${pendingExpenses.length} pending ${pendingExpenses.length === 1 ? 'transaction' : 'transactions'} awaiting clearance. All vault systems are green.`;
+
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Welcome Banner & Crew Context */}
@@ -111,6 +117,9 @@ export function DashboardView() {
           </Link>
         </div>
       </div>
+
+      {/* Audio Briefing */}
+      <VaultAudioBriefing briefingText={briefingText} />
 
       {/* Pending Approvals Alert Banner */}
       {pendingExpenses.length > 0 && (
