@@ -45,9 +45,9 @@ export class CrewCashAIService implements AIProvider {
   private model: string;
 
   constructor() {
-    this.apiKey = process.env.AI_API_KEY;
+    this.apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
     this.provider = process.env.AI_PROVIDER || 'gemini';
-    this.model = process.env.AI_MODEL || 'gemini-1.5-flash';
+    this.model = process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-flash-latest';
   }
 
   async extractReceipt(imageInput: string, mimeType: string): Promise<ReceiptExtraction> {
