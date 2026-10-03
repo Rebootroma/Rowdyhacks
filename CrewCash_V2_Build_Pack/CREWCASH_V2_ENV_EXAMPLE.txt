@@ -1,0 +1,36 @@
+# CrewCash V2 — Environment Template
+
+# App
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_DEMO_MODE=true
+
+# Auth (choose provider)
+# CLERK_SECRET_KEY=
+# NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+# AUTH_SECRET=
+
+# Tiger Data / PostgreSQL
+DATABASE_URL=
+
+# Gemini
+GEMINI_API_KEY=
+GEMINI_MODEL=
+
+# Receipt storage
+# Recommended: private object storage.
+STORAGE_PROVIDER=
+STORAGE_BUCKET=
+STORAGE_ACCESS_KEY=
+STORAGE_SECRET_KEY=
+
+# Optional market data
+MARKET_DATA_PROVIDER=
+MARKET_DATA_API_KEY=
+
+# Optional Solana Devnet
+SOLANA_RPC_URL=https://api.devnet.solana.com
+SOLANA_PRIVATE_KEY=
+
+# Optional ElevenLabs
+ELEVENLABS_API_KEY=
+ELEVENLABS_VOICE_ID=

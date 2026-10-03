@@ -1,0 +1,16 @@
+# CrewCash .env.example
+
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+
+# Server only:
+SUPABASE_SERVICE_ROLE_KEY=
+
+# AI provider — use ONE provider and keep key server-side.
+AI_PROVIDER=
+AI_API_KEY=
+AI_MODEL=
+
+# Optional
+NEXT_PUBLIC_DEMO_MODE=true
+APP_URL=http://localhost:3000
