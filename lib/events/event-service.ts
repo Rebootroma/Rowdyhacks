@@ -40,10 +40,24 @@ export async function appendFinancialEvent(input: AppendFinancialEventInput): Pr
   // If Tiger Data DATABASE_URL is configured, insert into Tiger Data table
   if (process.env.DATABASE_URL) {
     try {
-      // Dynamic import to avoid hard dependency failure if pg is optional
-      // Tiger Data hypertable insert statement:
-      // INSERT INTO financial_events (time, id, scope_type, scope_id, actor_user_id, event_type, amount_cents, category, entity_type, entity_id, metadata)
-      // VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      const { queryDb } = await import('@/lib/db/client');
+      await queryDb(
+        `INSERT INTO financial_events (time, id, scope_type, scope_id, actor_user_id, event_type, amount_cents, category, entity_type, entity_id, metadata)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+        [
+          event.time,
+          event.id,
+          event.scopeType,
+          event.scopeId,
+          event.actorUserId || null,
+          event.eventType,
+          event.amountCents || null,
+          event.category || null,
+          event.entityType || null,
+          event.entityId || null,
+          JSON.stringify(event.metadata || {}),
+        ]
+      );
     } catch {
       // Graceful fallback to buffer
     }
