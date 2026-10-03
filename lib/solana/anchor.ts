@@ -123,9 +123,9 @@ export async function verifyOnChainDigest(input: {
   }
 
   const logs = tx.meta?.logMessages ?? [];
-  const memoLog = logs.find((line) => line.includes(input.digest) || line.includes('Memo'));
+  const memoLog = logs.find((line: string) => line.includes(input.digest) || line.includes('Memo'));
   const expected = `crewcash:v1:${input.digest}`;
-  const ok = logs.some((line) => line.includes(expected) || line.includes(input.digest));
+  const ok = logs.some((line: string) => line.includes(expected) || line.includes(input.digest));
 
   return {
     ok,

@@ -15,6 +15,8 @@ import { ExpenseList } from '@/components/ExpenseList';
 import { SavingsGoalCard } from '@/components/SavingsGoalCard';
 import { AuditLogFeed } from '@/components/AuditLogFeed';
 import { VaultAudioBriefing } from '@/components/VaultAudioBriefing';
+import { GeminiCoachPanel } from '@/components/GeminiCoachPanel';
+import { MarketTickerTape } from '@/components/MarketTickerTape';
 import { ExpenseCategory } from '@/types/domain';
 import {
   Clock,
@@ -168,6 +170,16 @@ export function DashboardView() {
           anomaliesCount={0}
         />
       </div>
+
+      {/* Gemini Financial Coach with ElevenLabs Voice */}
+      <GeminiCoachPanel
+        crewId={state.crew.id}
+        crewName={state.crew.name}
+        mode="crew"
+      />
+
+      {/* Educational Market Ticker (Finnhub / Polygon / Timescale hypertable) */}
+      <MarketTickerTape />
 
       {/* Category Chart & Savings Missions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

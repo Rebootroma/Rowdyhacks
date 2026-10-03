@@ -102,6 +102,19 @@ export interface MarketPrice {
   source: string;
 }
 
+export interface MarketQuote {
+  symbol: string;
+  price: number;
+  change: number;
+  changePercent: number;
+  high: number;
+  low: number;
+  open: number;
+  previousClose: number;
+  source: string;
+  updatedAt: string;
+}
+
 // Portfolio & Simulation Types
 export interface PortfolioAllocation {
   assetClass: string;

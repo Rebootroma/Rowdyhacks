@@ -7,6 +7,13 @@ export async function generateBriefingAudio(text: string, voiceId?: string): Pro
     throw new Error('ELEVENLABS_API_KEY is not configured in environment variables');
   }
 
+  // Clean markdown tokens for natural speech
+  const speechText = text
+    .replace(/[*#_`~]/g, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+
   const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE_ID}`, {
     method: 'POST',
     headers: {
@@ -14,8 +21,8 @@ export async function generateBriefingAudio(text: string, voiceId?: string): Pro
       'xi-api-key': ELEVENLABS_API_KEY,
     },
     body: JSON.stringify({
-      text,
-      model_id: 'eleven_turbo_v2_5', // Use a fast and cost-effective model
+      text: speechText,
+      model_id: 'eleven_turbo_v2_5', // Fast and realistic voice model
       voice_settings: {
         stability: 0.5,
         similarity_boost: 0.75,

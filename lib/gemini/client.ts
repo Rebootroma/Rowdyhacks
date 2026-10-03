@@ -27,37 +27,53 @@ Rules:
 
 export function getGeminiConfig() {
   const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
-  const model = process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-flash-latest';
+  const model = process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-3.8-flash';
   return { apiKey, model };
 }
 
-export async function callGeminiApi(payload: Record<string, unknown>, timeoutMs: number = 8000): Promise<unknown> {
+export async function callGeminiApi(payload: Record<string, unknown>, timeoutMs: number = 15000): Promise<unknown> {
   const { apiKey, model } = getGeminiConfig();
   if (!apiKey) {
     throw new Error('GEMINI_API_KEY_MISSING');
   }
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const tryCall = async (targetModel: string) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Gemini API error (${response.status}): ${errText}`);
+      }
+
+      return await response.json();
+    } finally {
+      clearTimeout(timer);
+    }
+  };
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify(payload),
+    return await tryCall(model);
+  } catch (err: unknown) {
+    // If primary model hit 503 high demand or 404, fall back to ultra-fast gemini-3.5-flash-lite
+    if (model !== 'gemini-3.5-flash-lite') {
+      try {
+        return await tryCall('gemini-3.5-flash-lite');
+      } catch {
+        throw err;
       }
-    );
-
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`Gemini API error (${response.status}): ${errText}`);
     }
-
-    return await response.json();
-  } finally {
-    clearTimeout(timer);
+    throw err;
   }
 }

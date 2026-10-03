@@ -5,6 +5,7 @@ import { calculateInvestmentReadiness } from '@/lib/finance/investment-readiness
 import { runStressTest, calculateVolatility, calculateDrawdown } from '@/lib/finance/portfolio';
 import { ExpenseCategory } from '@/types/domain';
 import { StressScenarioId } from '@/types/v2';
+import { getMarketQuotes } from '@/lib/market/client';
 
 export const GEMINI_TOOL_DECLARATIONS = [
   {
@@ -215,8 +216,23 @@ export async function executeFinancialTool(
 
     case 'get_market_metrics': {
       const symbol = String(args.symbol || 'SPY').toUpperCase();
-      // Sample 30-day prices for demo
-      const samplePrices = [500, 502, 498, 505, 510, 508, 512, 509, 515, 520];
+      const quotes = await getMarketQuotes([symbol]);
+      const quote = quotes[0];
+
+      // Sample 30-day prices for demo volatility calculation anchored on current price
+      const current = quote ? quote.price : 574.82;
+      const samplePrices = [
+        current * 0.96,
+        current * 0.97,
+        current * 0.95,
+        current * 0.98,
+        current * 0.99,
+        current * 0.975,
+        current * 1.01,
+        current * 0.995,
+        current * 1.005,
+        current,
+      ];
       const dailyReturns = [];
       for (let i = 1; i < samplePrices.length; i++) {
         dailyReturns.push((samplePrices[i] - samplePrices[i - 1]) / samplePrices[i - 1]);
@@ -226,7 +242,12 @@ export async function executeFinancialTool(
 
       return {
         symbol,
-        latestPrice: samplePrices[samplePrices.length - 1],
+        latestPrice: quote ? quote.price : current,
+        dayChange: quote ? quote.change : 0,
+        dayChangePercent: quote ? quote.changePercent : 0,
+        high: quote ? quote.high : current,
+        low: quote ? quote.low : current,
+        dataSource: quote ? quote.source : 'demo-feed',
         annualizedVolatilityPercent: Math.round(vol.annualizedVolatility * 100),
         maxDrawdownPercent: dd.maxDrawdownPercent,
         note: 'Historical educational metrics only. Not an indicator of future performance.',

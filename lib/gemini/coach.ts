@@ -87,15 +87,19 @@ export async function runGeminiCoach(input: CoachMessageInput): Promise<CoachRes
         // Execute deterministic tool
         const toolResult = await executeFinancialTool(name, { ...args, crewId });
 
-        // Add assistant functionCall to history
-        contents.push({
-          role: 'model',
-          parts: [{ functionCall: functionCallPart.functionCall }],
-        });
+        // Add assistant functionCall to history (preserve exact model content including thoughtSignature)
+        if (candidate?.content) {
+          contents.push(candidate.content);
+        } else {
+          contents.push({
+            role: 'model',
+            parts: [functionCallPart],
+          });
+        }
 
-        // Add tool response to history
+        // Add tool response to history (Gemini API v1beta uses role 'user' for functionResponse)
         contents.push({
-          role: 'function',
+          role: 'user',
           parts: [
             {
               functionResponse: {
@@ -110,21 +114,28 @@ export async function runGeminiCoach(input: CoachMessageInput): Promise<CoachRes
         continue;
       }
 
-      // If text response returned, return it
-      const textPart = parts.find((p) => p.text);
-      if (textPart?.text) {
-        return {
-          reply: textPart.text.trim(),
-          toolsUsed,
-          isFallback: false,
-        };
+      // If text response returned, return all text parts joined together
+      const textParts = parts
+        .filter((p) => p.text && !(p as { thought?: boolean }).thought)
+        .map((p) => p.text);
+
+      if (textParts.length > 0) {
+        const fullReply = textParts.join('\n\n').trim();
+        if (fullReply.length > 0) {
+          return {
+            reply: fullReply,
+            toolsUsed,
+            isFallback: false,
+          };
+        }
       }
 
       break;
     }
 
     return generateDeterministicCoachFallback(input, toolsUsed);
-  } catch {
+  } catch (err) {
+    console.error('runGeminiCoach error:', err);
     return generateDeterministicCoachFallback(input, toolsUsed);
   }
 }
