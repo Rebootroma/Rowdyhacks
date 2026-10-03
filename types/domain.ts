@@ -205,3 +205,5 @@ export interface BudgetRescueResult {
   adjustments: BudgetRescueAdjustment[];
   safetyNotes: string;
 }
+
+export * from './v2';
