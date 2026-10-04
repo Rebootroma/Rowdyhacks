@@ -7,10 +7,17 @@ interface VaultAudioBriefingProps {
   briefingText: string;
 }
 
+const BRIEFING_VOICES = [
+  { id: 'TxGEqnHWrfWFTfGW9XjX', name: 'Josh (Deep & Relaxed Male)' },
+  { id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel (Warm & Natural Female)' },
+  { id: 'N2lVS1w4EtoT3dr4eOWO', name: 'Callum (Tech Analyst Male)' },
+];
+
 export function VaultAudioBriefing({ briefingText }: VaultAudioBriefingProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedVoiceId, setSelectedVoiceId] = useState(BRIEFING_VOICES[0].id);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handlePlayBriefing = async () => {
@@ -28,7 +35,10 @@ export function VaultAudioBriefing({ briefingText }: VaultAudioBriefingProps) {
       const response = await fetch('/api/voice/briefing', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: briefingText })
+        body: JSON.stringify({
+          text: briefingText,
+          voiceId: selectedVoiceId,
+        })
       });
 
       if (!response.ok) {
@@ -85,6 +95,21 @@ export function VaultAudioBriefing({ briefingText }: VaultAudioBriefingProps) {
         )}
         <span>{isPlaying ? 'Stop Briefing' : 'Play Daily Briefing 🎙'}</span>
       </button>
+
+      {/* Voice Selector */}
+      <select
+        value={selectedVoiceId}
+        onChange={(e) => setSelectedVoiceId(e.target.value)}
+        disabled={isPlaying || isLoading}
+        className="bg-slate-900 border border-slate-800 text-slate-300 text-xs rounded-lg px-2.5 py-2 focus:border-emerald-500/50 focus:outline-none transition cursor-pointer"
+        title="Select Natural Voice for Daily Briefing"
+      >
+        {BRIEFING_VOICES.map((v) => (
+          <option key={v.id} value={v.id}>
+            {v.name}
+          </option>
+        ))}
+      </select>
       
       {isPlaying && !isLoading && (
         <div className="flex items-end gap-1 h-6">
