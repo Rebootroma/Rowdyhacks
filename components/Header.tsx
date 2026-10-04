@@ -16,6 +16,7 @@ import {
   ChevronDown,
   Copy,
   Check,
+  TrendingUp,
 } from 'lucide-react';
 import { DEMO_USERS } from '@/lib/demo/demo-data';
 import {
@@ -68,6 +69,7 @@ export function Header() {
       badge: pendingCount > 0 ? pendingCount : undefined,
     },
     { href: '/analytics', label: 'Intel', icon: PieChart },
+    { href: '/invest', label: 'Invest', icon: TrendingUp },
     { href: '/goals', label: 'Missions', icon: Target },
     { href: '/members', label: 'Crew', icon: Users },
   ];

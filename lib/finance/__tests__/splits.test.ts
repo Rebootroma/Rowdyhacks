@@ -76,6 +76,7 @@ describe('Financial Health Score Engine', () => {
         healthcare: 0,
         entertainment: 0,
         shopping: 0,
+        investment: 0,
         other: 0,
       },
       activeAnomaliesCount: 0,
@@ -98,6 +99,7 @@ describe('Financial Health Score Engine', () => {
         education: 0,
         healthcare: 0,
         shopping: 0,
+        investment: 0,
         other: 0,
       },
       activeAnomaliesCount: 1, // -5 pts

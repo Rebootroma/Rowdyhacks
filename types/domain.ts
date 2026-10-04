@@ -10,6 +10,7 @@ export type ExpenseCategory =
   | 'healthcare'
   | 'entertainment'
   | 'shopping'
+  | 'investment'
   | 'other';
 
 export const EXPENSE_CATEGORIES: { id: ExpenseCategory; label: string; icon: string; color: string }[] = [
@@ -22,6 +23,7 @@ export const EXPENSE_CATEGORIES: { id: ExpenseCategory; label: string; icon: str
   { id: 'healthcare', label: 'Health & Medical', icon: 'Activity', color: '#ec4899' },
   { id: 'entertainment', label: 'Recreation & Fun', icon: 'Film', color: '#f43f5e' },
   { id: 'shopping', label: 'Supplies & Gear', icon: 'Package', color: '#14b8a6' },
+  { id: 'investment', label: 'Investments', icon: 'TrendingUp', color: '#8b5cf6' },
   { id: 'other', label: 'Miscellaneous', icon: 'Layers', color: '#64748b' },
 ];
 

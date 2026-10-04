@@ -10,9 +10,9 @@ export function MarketTickerTape() {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string>('');
 
-  const fetchQuotes = async () => {
+  const fetchQuotes = async (isBackground = false) => {
     try {
-      setLoading(true);
+      if (!isBackground) setLoading(true);
       const res = await fetch('/api/market/quotes');
       const json = await res.json();
       if (json.success && Array.isArray(json.data)) {
@@ -23,13 +23,13 @@ export function MarketTickerTape() {
     } catch (err) {
       console.error('Failed to fetch market quotes:', err);
     } finally {
-      setLoading(false);
+      if (!isBackground) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchQuotes();
-    const interval = setInterval(fetchQuotes, 60000); // 60s poll
+    const interval = setInterval(() => fetchQuotes(true), 10000); // 10s poll
     return () => clearInterval(interval);
   }, []);
 
@@ -66,7 +66,7 @@ export function MarketTickerTape() {
             </span>
           )}
           <button
-            onClick={fetchQuotes}
+            onClick={() => fetchQuotes(false)}
             disabled={loading}
             className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 text-slate-300 transition disabled:opacity-50"
             title="Refresh market prices"
@@ -76,45 +76,51 @@ export function MarketTickerTape() {
         </div>
       </div>
 
-      {/* Ticker Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2.5">
-        {quotes.map((q) => {
-          const isPositive = q.change >= 0;
-          return (
-            <div
-              key={q.symbol}
-              className="bg-slate-900/80 rounded-xl p-2.5 border border-slate-800/80 hover:border-slate-700 transition flex flex-col justify-between"
-            >
-              <div className="flex items-center justify-between gap-1 mb-1">
-                <span className="text-xs font-bold text-slate-200 font-mono">{q.symbol}</span>
-                <span
-                  className={`text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded flex items-center gap-0.5 ${
-                    isPositive
-                      ? 'bg-emerald-500/15 text-emerald-400'
-                      : 'bg-rose-500/15 text-rose-400'
-                  }`}
-                >
-                  {isPositive ? (
-                    <TrendingUp className="w-2.5 h-2.5" />
-                  ) : (
-                    <TrendingDown className="w-2.5 h-2.5" />
-                  )}
-                  {isPositive ? '+' : ''}
-                  {q.changePercent.toFixed(2)}%
-                </span>
-              </div>
+      {/* Ticker Marquee Row */}
+      <div className="overflow-hidden w-full relative group">
+        {/* Gradient fades for edges */}
+        <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[rgba(15,23,42,0.9)] to-transparent z-10"></div>
+        <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[rgba(15,23,42,0.9)] to-transparent z-10"></div>
 
-              <div className="flex items-baseline justify-between mt-1">
-                <span className="text-xs sm:text-sm font-semibold text-slate-100 font-mono">
-                  ${q.price.toFixed(2)}
-                </span>
-                <span className="text-[10px] text-slate-500 font-mono">
-                  {isPositive ? '+' : ''}${q.change.toFixed(2)}
-                </span>
+        <div className="animate-marquee">
+          {[...quotes, ...quotes].map((q, idx) => {
+            const isPositive = q.change >= 0;
+            return (
+              <div
+                key={`${q.symbol}-${idx}`}
+                className="bg-slate-900/80 rounded-xl p-2.5 border border-slate-800/80 hover:border-slate-700 transition flex flex-col justify-between mx-1.5 w-[140px] shrink-0"
+              >
+                <div className="flex items-center justify-between gap-1 mb-1">
+                  <span className="text-xs font-bold text-slate-200 font-mono">{q.symbol}</span>
+                  <span
+                    className={`text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded flex items-center gap-0.5 ${
+                      isPositive
+                        ? 'bg-emerald-500/15 text-emerald-400'
+                        : 'bg-rose-500/15 text-rose-400'
+                    }`}
+                  >
+                    {isPositive ? (
+                      <TrendingUp className="w-2.5 h-2.5" />
+                    ) : (
+                      <TrendingDown className="w-2.5 h-2.5" />
+                    )}
+                    {isPositive ? '+' : ''}
+                    {q.changePercent.toFixed(2)}%
+                  </span>
+                </div>
+
+                <div className="flex items-baseline justify-between mt-1">
+                  <span className="text-sm font-semibold text-slate-100 font-mono">
+                    ${q.price.toFixed(2)}
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-mono">
+                    {isPositive ? '+' : ''}${q.change.toFixed(2)}
+                  </span>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       <div className="mt-3 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-500">
