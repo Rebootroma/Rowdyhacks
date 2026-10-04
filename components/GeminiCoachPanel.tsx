@@ -34,8 +34,11 @@ const QUICK_PROMPTS = [
   'What is better for a student: a diversified ETF or single tech stock?',
 ];
 
-// Adam voice ID from ElevenLabs
-const ADAM_VOICE_ID = 'pNInz6obpgDQGcFmaJgB';
+// Natural ElevenLabs Voice options
+const NATURAL_VOICES = [
+  { id: '21m00Tcm4TlvDq8ikWAM', label: 'Rachel (Warm & Natural)' },
+  { id: 'TxGEqnHWrfWFTfGW9XjX', label: 'Josh (Conversational Male)' },
+];
 
 export function GeminiCoachPanel({
   crewId,
@@ -53,6 +56,7 @@ export function GeminiCoachPanel({
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [autoVoice, setAutoVoice] = useState(true);
+  const [selectedVoiceId, setSelectedVoiceId] = useState(NATURAL_VOICES[0].id);
 
   // Audio state
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
@@ -149,7 +153,7 @@ export function GeminiCoachPanel({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text,
-          voiceId: ADAM_VOICE_ID,
+          voiceId: selectedVoiceId,
         }),
       });
 
@@ -212,12 +216,26 @@ export function GeminiCoachPanel({
               </span>
             </h2>
             <p className="text-xs text-slate-400">
-              Voice output powered by <strong className="text-slate-300">ElevenLabs</strong> (Adam Voice)
+              Voice output powered by <strong className="text-slate-300">ElevenLabs</strong> (Natural Human Voice)
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Voice Selector */}
+          <select
+            value={selectedVoiceId}
+            onChange={(e) => setSelectedVoiceId(e.target.value)}
+            className="bg-slate-900 border border-slate-800 text-slate-300 text-xs rounded-lg px-2.5 py-1.5 focus:border-emerald-500/50 focus:outline-none transition cursor-pointer"
+            title="Select ElevenLabs Natural Voice"
+          >
+            {NATURAL_VOICES.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.label}
+              </option>
+            ))}
+          </select>
+
           {/* Auto-Voice Toggle */}
           <button
             type="button"
@@ -227,7 +245,7 @@ export function GeminiCoachPanel({
                 ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300'
                 : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-300'
             }`}
-            title="Automatically speak coach replies using ElevenLabs Adam voice"
+            title="Automatically speak coach replies using natural ElevenLabs voice"
           >
             <Volume2 className={`w-3.5 h-3.5 ${autoVoice ? 'text-emerald-400' : 'text-slate-500'}`} />
             <span>Auto-Voice: {autoVoice ? 'ON' : 'OFF'}</span>

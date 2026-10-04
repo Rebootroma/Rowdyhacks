@@ -1,7 +1,7 @@
 export async function generateBriefingAudio(text: string, voiceId?: string): Promise<ArrayBuffer> {
   const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
-  // Default to Adam
-  const ELEVENLABS_VOICE_ID = voiceId || process.env.ELEVENLABS_VOICE_ID || 'pNInz6obpgDQGcFmaJgB';
+  // Default to Rachel (widely rated the most natural, human-sounding voice)
+  const ELEVENLABS_VOICE_ID = voiceId || process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM';
 
   if (!ELEVENLABS_API_KEY) {
     throw new Error('ELEVENLABS_API_KEY is not configured in environment variables');
@@ -22,10 +22,13 @@ export async function generateBriefingAudio(text: string, voiceId?: string): Pro
     },
     body: JSON.stringify({
       text: speechText,
-      model_id: 'eleven_turbo_v2_5', // Fast and realistic voice model
+      // eleven_multilingual_v2 delivers organic pacing, natural breathing, and lifelike inflections
+      model_id: 'eleven_multilingual_v2',
       voice_settings: {
-        stability: 0.5,
-        similarity_boost: 0.75,
+        stability: 0.38, // Dynamic human variance (avoids monotone robotic delivery)
+        similarity_boost: 0.85,
+        style: 0.20, // Conversational warmth
+        use_speaker_boost: true,
       },
     }),
   });
