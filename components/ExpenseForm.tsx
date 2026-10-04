@@ -70,6 +70,9 @@ export function ExpenseForm({
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // File upload ref for actual image scanning
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Parse amount in cents
   const amountCents = parseDollarsToCents(amountInput);
@@ -111,18 +114,72 @@ export function ExpenseForm({
       });
       const data = await res.json();
       if (data.success && data.extraction) {
-        const ext = data.extraction as ReceiptExtraction;
-        setTitle(`${ext.merchant || 'Grocery'} Supplies`);
-        setMerchant(ext.merchant || '');
-        setAmountInput((ext.total_cents / 100).toFixed(2));
-        setCategory(ext.category);
-        if (ext.date) setExpenseDate(ext.date);
-        setDescription(`Extracted from ${ext.merchant}. ${ext.items.length} items cataloged.`);
-        setReceiptConfidence(ext.confidence);
+        populateExtraction(data.extraction);
       }
     } catch (e) {
       console.error(e);
     } finally {
+      setIsScanning(false);
+    }
+  };
+
+  const populateExtraction = (ext: ReceiptExtraction) => {
+    setTitle(`${ext.merchant || 'Receipt'} Expense`);
+    setMerchant(ext.merchant || '');
+    setAmountInput((ext.total_cents / 100).toFixed(2));
+    if (ext.category) setCategory(ext.category);
+    if (ext.date) setExpenseDate(ext.date);
+    
+    // Format a nice note summarizing items
+    let note = `Extracted from ${ext.merchant || 'receipt'}.`;
+    if (ext.items && ext.items.length > 0) {
+       note += ` Found ${ext.items.length} items (e.g. ${ext.items[0].name}).`;
+    }
+    setDescription(note);
+    setReceiptConfidence(ext.confidence);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsScanning(true);
+    setError(null);
+    setReceiptConfidence(null);
+
+    try {
+      // Convert file to base64
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        const base64Data = reader.result as string;
+        
+        const res = await fetch('/api/receipts/extract', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            image: base64Data,
+            mimeType: file.type,
+          }),
+        });
+
+        const data = await res.json();
+        
+        if (data.success && data.extraction) {
+          populateExtraction(data.extraction);
+        } else {
+          setError(data.error || 'Failed to extract receipt data.');
+        }
+        setIsScanning(false);
+      };
+      
+      reader.onerror = () => {
+        setError('Failed to read image file.');
+        setIsScanning(false);
+      };
+    } catch (err: any) {
+      console.error('Upload error:', err);
+      setError('An error occurred while uploading the receipt.');
       setIsScanning(false);
     }
   };
@@ -180,15 +237,34 @@ export function ExpenseForm({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={handleSampleReceipt}
-          disabled={isScanning}
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition shrink-0 shadow-md"
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>{isScanning ? 'Extracting Receipt...' : 'Autofill Sample Receipt'}</span>
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            className="hidden"
+            onChange={handleFileUpload}
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isScanning}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition shadow-md"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            <span>{isScanning ? 'Scanning...' : 'Upload Receipt'}</span>
+          </button>
+          
+          <button
+            type="button"
+            onClick={handleSampleReceipt}
+            disabled={isScanning}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 transition border border-slate-700 shadow-md"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Try Demo</span>
+          </button>
+        </div>
       </div>
 
       {receiptConfidence !== null && (

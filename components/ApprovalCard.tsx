@@ -4,7 +4,18 @@ import React, { useState } from 'react';
 import { Expense, UserProfile } from '@/types/domain';
 import { formatCents, formatDate } from '@/lib/utils';
 import { recordApprovalAction } from '@/actions/expenses';
-import { CheckCircle2, XCircle, Clock, ShieldCheck, UserCheck, AlertCircle } from 'lucide-react';
+import { getDemoState, saveDemoState } from '@/lib/demo/demo-store';
+import { SolanaVerificationModal } from '@/components/SolanaVerificationModal';
+import {
+  CheckCircle2,
+  XCircle,
+  Clock,
+  ShieldCheck,
+  UserCheck,
+  AlertCircle,
+  ExternalLink,
+  Cpu,
+} from 'lucide-react';
 
 interface ApprovalCardProps {
   expense: Expense;
@@ -15,6 +26,8 @@ interface ApprovalCardProps {
 export function ApprovalCard({ expense, currentUser, thresholdCents }: ApprovalCardProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const [anchorInfo, setAnchorInfo] = useState<{ signature: string; digest: string } | null>(null);
 
   const isCreator = expense.created_by === currentUser.id;
   const existingVote = expense.approvals?.find((a) => a.user_id === currentUser.id);
@@ -28,6 +41,27 @@ export function ApprovalCard({ expense, currentUser, thresholdCents }: ApprovalC
     const res = await recordApprovalAction(expense.id, decision);
     if (!res.success) {
       setError(res.error || 'Failed to record decision');
+    } else if (res.expense) {
+      const currentState = getDemoState();
+      const updatedExpenses = currentState.expenses.map((e) =>
+        e.id === res.expense.id ? res.expense : e
+      );
+      let updatedAnchors = currentState.solanaAnchors || [];
+      if (res.solanaAnchor) {
+        updatedAnchors = [
+          res.solanaAnchor,
+          ...updatedAnchors.filter((a) => a.expenseId !== res.expense.id),
+        ];
+        setAnchorInfo({
+          signature: res.solanaAnchor.signature,
+          digest: res.solanaAnchor.digest,
+        });
+      }
+      saveDemoState({
+        ...currentState,
+        expenses: updatedExpenses,
+        solanaAnchors: updatedAnchors,
+      });
     }
     setLoading(false);
   };
@@ -164,6 +198,46 @@ export function ApprovalCard({ expense, currentUser, thresholdCents }: ApprovalC
           </button>
         </div>
       </div>
+
+      {/* Solana Anchor Callout if finalized */}
+      {(() => {
+        const currentAnchor = anchorInfo || getDemoState().solanaAnchors?.find((a) => a.expenseId === expense.id);
+        if (!currentAnchor) return null;
+        return (
+          <div className="mt-4 p-3 rounded-lg bg-violet-950/40 border border-violet-500/40 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2 text-violet-300">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                <span className="font-semibold text-violet-200">Anchored on Solana Devnet</span>
+                <span className="font-mono text-[10px] text-slate-400 truncate max-w-[140px] sm:max-w-[200px]">
+                  Tx: {currentAnchor.signature.slice(0, 16)}...
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setAnchorInfo({ signature: currentAnchor.signature, digest: currentAnchor.digest });
+                setShowVerifyModal(true);
+              }}
+              className="px-2.5 py-1 rounded-md bg-violet-600/30 hover:bg-violet-600/40 text-violet-200 border border-violet-500/40 text-[11px] font-medium transition shrink-0"
+            >
+              Verify On-Chain
+            </button>
+          </div>
+        );
+      })()}
+
+      {/* Verification Modal */}
+      {showVerifyModal && anchorInfo && (
+        <SolanaVerificationModal
+          isOpen={true}
+          onClose={() => setShowVerifyModal(false)}
+          signature={anchorInfo.signature}
+          digest={anchorInfo.digest}
+          expenseTitle={expense.title}
+          amountCents={expense.amount_cents}
+        />
+      )}
     </div>
   );
 }

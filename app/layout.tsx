@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   title: 'CrewCash — Collaborative Shared Vault for Groups & Hackathons',
   description:
     'Collaborative financial-management web app. Non-custodial shared budgets, exact integer-cent splits, dual-approval controls, and deterministic financial health.',
+  icons: {
+    icon: '/logo.jpg',
+    apple: '/logo.jpg',
+  },
 };
 
 export default function RootLayout({

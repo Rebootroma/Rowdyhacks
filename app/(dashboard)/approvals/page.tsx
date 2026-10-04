@@ -7,11 +7,18 @@ import {
   DemoStoreState,
 } from '@/lib/demo/demo-store';
 import { ApprovalCard } from '@/components/ApprovalCard';
+import { SolanaVerificationModal } from '@/components/SolanaVerificationModal';
 import { ShieldCheck, Clock, CheckCircle2, AlertTriangle, Users } from 'lucide-react';
 import { formatCents } from '@/lib/utils';
 
 export default function ApprovalsPage() {
   const [state, setState] = useState<DemoStoreState | null>(null);
+  const [selectedAnchor, setSelectedAnchor] = useState<{
+    signature: string;
+    digest: string;
+    expenseTitle?: string;
+    amountCents?: number;
+  } | null>(null);
 
   useEffect(() => {
     setState(getDemoState());
@@ -114,36 +121,50 @@ export default function ApprovalsPage() {
                   <span>Merchant: {exp.merchant || 'N/A'}</span>
                   <span className="text-emerald-400 font-medium">Approved ✓</span>
                 </div>
-                {anchor && (
-                  <div className="pt-2 border-t border-slate-800/80 space-y-1">
-                    <div className="flex items-center gap-1.5 text-violet-300">
-                      <ShieldCheck className="w-3 h-3" />
-                      <span className="font-medium">Solana Devnet anchor</span>
-                    </div>
-                    <p className="font-mono text-[10px] text-slate-500 break-all">
-                      digest: {anchor.digest.slice(0, 18)}…
-                    </p>
-                    {explorer ? (
-                      <a
-                        href={explorer}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[10px] text-violet-300 hover:text-violet-200 underline underline-offset-2"
+                  {anchor && (
+                    <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-1.5 text-violet-300">
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                          <span className="font-semibold text-violet-200">Solana Devnet Anchor</span>
+                        </div>
+                        <p className="font-mono text-[10px] text-slate-400">
+                          Tx: {anchor.signature.slice(0, 14)}...
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={() =>
+                          setSelectedAnchor({
+                            signature: anchor.signature,
+                            digest: anchor.digest,
+                            expenseTitle: exp.title,
+                            amountCents: exp.amount_cents,
+                          })
+                        }
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-violet-600/30 hover:bg-violet-600/40 text-violet-200 border border-violet-500/40 text-[11px] font-medium transition"
                       >
-                        View tx on explorer →
-                      </a>
-                    ) : (
-                      <p className="text-[10px] text-amber-400/90">
-                        Local digest only — fund Devnet wallet to publish on-chain
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
+                        <ShieldCheck className="w-3 h-3" />
+                        Verify
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
             })}
           </div>
         </div>
+      )}
+
+      {selectedAnchor && (
+        <SolanaVerificationModal
+          isOpen={true}
+          onClose={() => setSelectedAnchor(null)}
+          signature={selectedAnchor.signature}
+          digest={selectedAnchor.digest}
+          expenseTitle={selectedAnchor.expenseTitle}
+          amountCents={selectedAnchor.amountCents}
+        />
       )}
     </div>
   );

@@ -22,6 +22,7 @@ import {
   Clock,
   ArrowRight,
   ShieldAlert,
+  ShieldCheck,
   Sparkles,
   Users,
   Target,
@@ -149,6 +150,24 @@ export function DashboardView() {
           </Link>
         </div>
       )}
+
+      {/* Solana Devnet On-Chain Audit Strip */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 px-4 rounded-xl bg-slate-900/60 border border-slate-800/80 text-xs">
+        <div className="flex items-center gap-2 text-slate-300">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+          <span className="font-semibold text-violet-300">Solana Devnet Audit Active:</span>
+          <span className="text-slate-400">
+            {state.solanaAnchors?.length || 0} high-value transaction{state.solanaAnchors?.length === 1 ? '' : 's'} cryptographically sealed on-chain.
+          </span>
+        </div>
+        <Link
+          href="/ledger"
+          className="text-violet-400 hover:text-violet-300 inline-flex items-center gap-1 font-medium transition shrink-0"
+        >
+          <span>Open Solana Ledger</span>
+          <ArrowRight className="w-3 h-3" />
+        </Link>
+      </div>
 
       {/* Top 2 Cards: Budget Summary & Health Score */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

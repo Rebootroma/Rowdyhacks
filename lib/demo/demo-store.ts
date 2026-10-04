@@ -20,6 +20,7 @@ import {
   DEMO_EXPENSES,
   DEMO_GOALS,
   DEMO_AUDIT_LOGS,
+  DEMO_SOLANA_ANCHORS,
 } from './demo-data';
 import { calculateEqualSplit } from '../finance/splits';
 
@@ -45,13 +46,13 @@ let serverState: DemoStoreState = {
   expenses: JSON.parse(JSON.stringify(DEMO_EXPENSES)),
   goals: JSON.parse(JSON.stringify(DEMO_GOALS)),
   auditLogs: JSON.parse(JSON.stringify(DEMO_AUDIT_LOGS)),
-  solanaAnchors: [],
+  solanaAnchors: JSON.parse(JSON.stringify(DEMO_SOLANA_ANCHORS)),
 };
 
 function withDefaults(state: DemoStoreState): DemoStoreState {
   return {
     ...state,
-    solanaAnchors: state.solanaAnchors ?? [],
+    solanaAnchors: state.solanaAnchors && state.solanaAnchors.length > 0 ? state.solanaAnchors : [...DEMO_SOLANA_ANCHORS],
   };
 }
 
@@ -86,7 +87,7 @@ export function resetDemoState(): DemoStoreState {
     expenses: JSON.parse(JSON.stringify(DEMO_EXPENSES)),
     goals: JSON.parse(JSON.stringify(DEMO_GOALS)),
     auditLogs: JSON.parse(JSON.stringify(DEMO_AUDIT_LOGS)),
-    solanaAnchors: [],
+    solanaAnchors: JSON.parse(JSON.stringify(DEMO_SOLANA_ANCHORS)),
   };
   saveDemoState(initial);
   return initial;

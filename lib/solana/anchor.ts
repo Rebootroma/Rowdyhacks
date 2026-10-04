@@ -104,10 +104,21 @@ export async function anchorApproval(input: AnchorApprovalInput): Promise<Anchor
   };
 }
 
+export interface OnChainVerificationResult {
+  ok: boolean;
+  onChainMemo: string | null;
+  slot?: number;
+  blockTime?: number;
+  feeLamports?: number;
+  logMessages?: string[];
+  explorerUrl?: string;
+  reason?: string;
+}
+
 export async function verifyOnChainDigest(input: {
   digest: string;
   signature: string;
-}): Promise<{ ok: boolean; onChainMemo: string | null; reason?: string }> {
+}): Promise<OnChainVerificationResult> {
   if (!input.signature || input.signature.startsWith('local-only:')) {
     return { ok: false, onChainMemo: null, reason: 'No on-chain signature to verify' };
   }
@@ -119,7 +130,7 @@ export async function verifyOnChainDigest(input: {
   });
 
   if (!tx) {
-    return { ok: false, onChainMemo: null, reason: 'Transaction not found on RPC' };
+    return { ok: false, onChainMemo: null, reason: 'Transaction not found on Solana Devnet RPC' };
   }
 
   const logs = tx.meta?.logMessages ?? [];
@@ -130,6 +141,11 @@ export async function verifyOnChainDigest(input: {
   return {
     ok,
     onChainMemo: memoLog ?? null,
+    slot: tx.slot,
+    blockTime: tx.blockTime ?? undefined,
+    feeLamports: tx.meta?.fee,
+    logMessages: logs,
+    explorerUrl: explorerUrl(input.signature),
     reason: ok ? undefined : 'Digest not found in transaction memo logs',
   };
 }

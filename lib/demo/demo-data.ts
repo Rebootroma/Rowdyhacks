@@ -7,6 +7,7 @@ import {
   SavingsGoal,
   AuditLog,
 } from '@/types/domain';
+import { SolanaAnchor } from '@/types/v2';
 
 export const DEMO_USERS: Record<string, UserProfile> = {
   alex: {
@@ -304,5 +305,15 @@ export const DEMO_AUDIT_LOGS: AuditLog[] = [
     metadata: { approvals_count: 1, required: 2 },
     created_at: '2026-10-03T14:20:00Z',
     actor: DEMO_USERS.jordan,
+  },
+];
+
+export const DEMO_SOLANA_ANCHORS: SolanaAnchor[] = [
+  {
+    expenseId: 'exp-001',
+    digest: '4cb2f0e6e00d50dd94020d7fa946cb533668548dadbfcba87bdb140782649339',
+    signature: '518cgczV5izWSuuRx4T9MJ5YjsyPyBEZEueJUxc4j5t7QoWnXZUaFnUyWz1hjA9KjT2BX5iH6S7Q8NLVnhNNe4XJ',
+    network: 'devnet',
+    anchoredAt: '2026-10-04T13:13:54.906Z',
   },
 ];

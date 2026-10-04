@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { Expense, EXPENSE_CATEGORIES } from '@/types/domain';
 import { formatCents, formatDate } from '@/lib/utils';
+import { getDemoState } from '@/lib/demo/demo-store';
+import { SolanaVerificationModal } from '@/components/SolanaVerificationModal';
 import {
   CheckCircle2,
   Clock,
@@ -12,6 +14,7 @@ import {
   Filter,
   Users,
   ChevronDown,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface ExpenseListProps {
@@ -24,6 +27,15 @@ export function ExpenseList({ expenses }: ExpenseListProps) {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [search, setSearch] = useState<string>('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedAnchor, setSelectedAnchor] = useState<{
+    signature: string;
+    digest: string;
+    expenseTitle?: string;
+    amountCents?: number;
+  } | null>(null);
+
+  const demoState = typeof window !== 'undefined' ? getDemoState() : null;
+  const anchors = demoState?.solanaAnchors || [];
 
   const filtered = expenses.filter((e) => {
     if (filterCategory !== 'all' && e.category !== filterCategory) return false;
@@ -155,9 +167,32 @@ export function ExpenseList({ expenses }: ExpenseListProps) {
                     </div>
 
                     <div>
-                      <div className="text-sm font-semibold text-slate-100 flex items-center gap-2">
+                      <div className="text-sm font-semibold text-slate-100 flex flex-wrap items-center gap-2">
                         <span>{expense.title}</span>
                         {getStatusBadge(expense.status)}
+                        {(() => {
+                          const anchor = anchors.find((a) => a.expenseId === expense.id);
+                          if (!anchor) return null;
+                          return (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedAnchor({
+                                  signature: anchor.signature,
+                                  digest: anchor.digest,
+                                  expenseTitle: expense.title,
+                                  amountCents: expense.amount_cents,
+                                });
+                              }}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-violet-500/10 text-violet-300 border border-violet-500/30 hover:bg-violet-500/20 cursor-pointer transition"
+                              title="Verified on Solana Devnet. Click to view on-chain audit."
+                            >
+                              <ShieldCheck className="w-2.5 h-2.5 text-violet-400" />
+                              <span>SOL Devnet 🔗</span>
+                            </button>
+                          );
+                        })()}
                       </div>
                       <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-2">
                         <span>{formatDate(expense.expense_date)}</span>
@@ -225,6 +260,17 @@ export function ExpenseList({ expenses }: ExpenseListProps) {
             );
           })}
         </div>
+      )}
+
+      {selectedAnchor && (
+        <SolanaVerificationModal
+          isOpen={true}
+          onClose={() => setSelectedAnchor(null)}
+          signature={selectedAnchor.signature}
+          digest={selectedAnchor.digest}
+          expenseTitle={selectedAnchor.expenseTitle}
+          amountCents={selectedAnchor.amountCents}
+        />
       )}
     </div>
   );
